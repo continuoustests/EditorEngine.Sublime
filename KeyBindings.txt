@@ -1,0 +1,6 @@
+[
+	{ "keys": ["ctrl+t"], "command": "type_search_window" },
+	{ "keys": ["ctrl+j"], "command": "go_to_auto_test_net" },
+	{ "keys": ["ctrl+e"], "command": "explorer_window" },
+	{ "keys": ["ctrl+shift+o"], "command": "open_ide_run" },
+]
