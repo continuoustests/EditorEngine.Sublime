@@ -268,7 +268,7 @@ class BufferContent:
 		sublime.set_timeout(lambda: self.get_content(file_name), 5)
 		while self.completed == False:
 			time.sleep(0.1)
-		return self.content
+		return self.content.replace("\n", "||newline||")
 
 	def get_content(self, file_name):
 		self.content = ""
