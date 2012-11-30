@@ -216,7 +216,7 @@ class OIServer(TCPThreadedServer):
 ####################################### Core Stuff ########################
 
 def open_point(point):
-	view = go_to_file(point.File)
+	view = go_to_file_position(point.File, point.Line, point.Column)
 	if view == None:
 		return
 	go_to_position(view, point)
@@ -291,6 +291,13 @@ def go_to_file(file_name):
 		return None
 	window = sublime.active_window()
 	return window.open_file(file_name)
+
+def go_to_file_position(file_name,line,column):
+	if os.path.exists(file_name) == False:
+		return None
+	window = sublime.active_window()
+	position = ":" + str(line) + ":" + str(column)
+	return window.open_file(file_name + position, sublime.ENCODED_POSITION)
 
 def go_to_position(view, point):
 	sublime_point = view.text_point(point.Line, point.Column)
