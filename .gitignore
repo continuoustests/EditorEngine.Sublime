@@ -1,6 +1,10 @@
-# Build Folders (you can keep bin if you'd like, to store dlls and pdbs)
-bin
-obj
+# Sublime
+*.pyc
+*.sublime-project
+*.sublime-workspace
 
-# mstest test results
-TestResults
+# OpenIDE
+AutoTest.config
+AutoTest.config.old
+.OpenIDE/active.profile
+oi-definitions.json
