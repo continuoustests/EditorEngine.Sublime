@@ -178,7 +178,7 @@ class TCPThreadedServer(TCPServer, ThreadingMixIn):
 			msg = self.rfile.readline().strip()
 			reply = self.server.process(msg)
 			if reply is not None:
-				self.wfile.write(str(reply) + '\n')
+				self.wfile.write(bytes(reply + '\n', 'UTF-8'))
 
 	def __init__(self, host, port, name=None):
 		self.allow_reuse_address = True
