@@ -3,6 +3,7 @@ from socketserver import TCPServer, StreamRequestHandler, ThreadingMixIn
 from threading import Thread
 import shlex, time, tempfile
 import os.path
+import pprint
 
 class EditorEnginePluginHost(sublime_plugin.ApplicationCommand):
 	def __init__ (self):
@@ -38,6 +39,18 @@ class BufferChangeEvent(sublime_plugin.EventListener):
 		msg = "editor buffer-changed " + view.file_name()
 		sublime.set_timeout(lambda: send_editor_engine_message_from_view(view, msg), 5)
 
+class OpenIdeDispatchCommand(sublime_plugin.ApplicationCommand):
+	def run(self, message):
+		send_editor_engine_message(message)
+
+class OpenIdeLanguageCommandCommand(sublime_plugin.WindowCommand):
+	def run(self, message):
+		view = self.window.active_view()
+		if view == None:
+			return
+		filename, extension = os.path.splitext(view.file_name())
+		send_editor_engine_message(extension + ' command ' + message)
+
 ###########################################################################
 ####################################### Commands ##########################
 
@@ -62,6 +75,10 @@ def handle_command(cmd):
 		return get_dirty_buffers()
 	if args[0] == "get-buffer-content":
 		return get_buffer_content(args)
+	if args[0] == "caret":
+		return get_caret(args)
+	if args[0] == "user-select":
+		select_item(args)
 	return None
 
 def open_file(args):
@@ -85,6 +102,23 @@ def get_dirty_buffers():
 def get_buffer_content(args):
 	content_reader = BufferContent()
 	return content_reader.get(args[1])
+
+def get_caret(args):
+	view = sublime.active_window().active_view()
+	line, column = view.rowcol(view.sel()[0].begin())
+	filename = view.file_name()
+	return filename+"|"+str(line+1)+"|"+str(column+1)
+
+def select_item(args):
+	items = args[2].split(',')
+	def on_done(e):
+		response = "user-cancelled"
+		if e != -1:
+			response = items[e]
+		msg = "user-selected \"" + args[1] + "\" \""  + response + "\""
+		sublime.set_timeout(lambda: send_editor_engine_message_from_view(window.active_view(), msg), 5)
+	window = sublime.active_window()
+	window.show_quick_panel(items, on_done)
 
 ###########################################################################
 ####################################### Editor Engine Client ##############
