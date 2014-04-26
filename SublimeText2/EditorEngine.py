@@ -77,6 +77,8 @@ def handle_command(command):
         return get_caret(args)
     if args[0] == "user-select":
         select_item(args)
+    if args[0] == "user-input":
+        input_item(args)
     return None
 
 def open_file(args):
@@ -117,6 +119,18 @@ def select_item(args):
         sublime.set_timeout(lambda: send_editor_engine_message_from_view(window.active_view(), msg), 5)
     window = sublime.active_window()
     window.show_quick_panel(items, on_done)
+
+def input_item(args):
+    def on_done(e):
+        msg = "user-inputted \"" + args[1] + "\" \""  + e + "\""
+        sublime.set_timeout(lambda: send_editor_engine_message_from_view(window.active_view(), msg), 5)
+
+    def on_cancel():
+        msg = "user-inputted \"" + args[1] + "\" \"user-cancelled\""
+        sublime.set_timeout(lambda: send_editor_engine_message_from_view(window.active_view(), msg), 5)
+    
+    window = sublime.active_window()
+    window.show_input_panel("Input", args[2], on_done, None, on_cancel)
 
 ###########################################################################
 ####################################### Editor Engine Client ##############
