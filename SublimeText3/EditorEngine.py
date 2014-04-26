@@ -49,28 +49,43 @@ class OpenIdeLanguageCommandCommand(sublime_plugin.WindowCommand):
         if view == None:
             return
         filename, extension = os.path.splitext(view.file_name())
-        send_editor_engine_message(extension + ' command ' + message)
+        engine_message = extension + ' command ' + message
+        send_editor_engine_message(engine_message)
 
 class OpenIdeInsertCommand(sublime_plugin.TextCommand):
     def run(self, edit, filename, line, column, text):
         point = get_point(filename, line, column)
-        print("hello")
+        print(sublime.active_window().active_view().file_name())
+        print(filename) 
+        if sublime.active_window().active_view().file_name() != filename:
+            sublime.set_timeout(lambda: open_point(point), 5)
         view = go_to_file(point.File)
         if view == None:
             return
+        time_slept = 0
         while view.is_loading():
+            if time_slept > 1:
+                break;
             time.sleep(0.05)
+            time_slept += 0.05
         view.insert(edit, view.text_point(point.Line, point.Column), text)
 
 class OpenIdeRemoveCommand(sublime_plugin.TextCommand):
     def run(self, edit, filename, lineStart, columnStart, lineEnd, columnEnd):
         start = get_point(filename, lineStart, columnStart)
         end = get_point(filename, lineEnd, columnEnd)
+        if sublime.active_window().active_view().file_name() != filename:
+            sublime.set_timeout(lambda: open_point(start), 5)
+        time.sleep(0.15)
         view = go_to_file(start.File)
         if view == None:
             return
+        time_slept = 0
         while view.is_loading():
+            if time_slept > 1:
+                break;
             time.sleep(0.05)
+            time_slept += 0.05
         start_point=view.text_point(start.Line, start.Column)
         end_point=view.text_point(end.Line, end.Column)
         view.erase(edit, sublime.Region(start_point, end_point))
@@ -111,7 +126,11 @@ def open_file(args):
 
 def insert(args):
     text = args[1].replace("||newline||", os.linesep)
-    sublime.active_window().run_command('open_ide_insert', {"filename": args[2], "line": args[3], "column": args[4], "text": text})
+    if sublime.active_window().active_view().file_name() != args[2]:
+        open_file(["", args[2],args[3],args[4]])
+    def run_insert_command(filename, line, column, text):
+        sublime.active_window().run_command('open_ide_insert', {"filename": filename, "line": line, "column": column, "text": text})
+    sublime.set_timeout(lambda: run_insert_command(args[2],args[3],args[4],text), 100)
 
 def remove(args):
     sublime.active_window().run_command('open_ide_remove', {"filename": args[1], "lineStart": args[2], "columnStart": args[3], "lineEnd": args[4], "columnEnd": args[5]})
