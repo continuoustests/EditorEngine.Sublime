@@ -1,4 +1,4 @@
-import sublime, sublime_plugin, socket
+import sys, sublime, sublime_plugin, socket
 from SocketServer import TCPServer, StreamRequestHandler, ThreadingMixIn
 from threading import Thread
 import shlex, time, tempfile
@@ -168,7 +168,10 @@ def get_editor_engine_client(view):
     return token
 
 def get_editor_engine_token(file_name):
-    editor_token_path = os.path.join(tempfile.gettempdir(), "EditorEngine")
+    tempdir = tempfile.gettempdir()
+    if sys.platform == "darwin":
+        tempdir = "/tmp"
+    editor_token_path = os.path.join(tempdir, "EditorEngine")
     engines = []
     if os.path.exists(editor_token_path) == True:
         all_engines = []
