@@ -132,7 +132,7 @@ def insert(args):
         open_file(["", args[2],args[3],args[4]])
     def run_insert_command(filename, line, column, text):
         sublime.active_window().run_command('open_ide_insert', {"filename": filename, "line": line, "column": column, "text": text})
-    sublime.set_timeout(lambda: run_insert_command(args[2],args[3],args[4],text), 100)
+    sublime.set_timeout(lambda: run_insert_command(args[2],args[3],args[4],text), 300)
 
 def remove(args):
     sublime.active_window().run_command('open_ide_remove', {"filename": args[1], "lineStart": args[2], "columnStart": args[3], "lineEnd": args[4], "columnEnd": args[5]})
