@@ -213,7 +213,7 @@ def get_editor_engine_token(file_name):
     tempdir = tempfile.gettempdir()
     if sys.platform == "darwin":
         tempdir = "/tmp"
-    editor_token_path = os.path.join(tempfile.gettempdir(), "EditorEngine")
+    editor_token_path = os.path.join(tempdir, "EditorEngine")
     engines = []
     if os.path.exists(editor_token_path) == True:
         all_engines = []
