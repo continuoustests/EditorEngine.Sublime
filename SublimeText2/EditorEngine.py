@@ -1,4 +1,5 @@
-import sys, sublime, sublime_plugin, socket
+import sys
+import sublime, sublime_plugin, socket
 from SocketServer import TCPServer, StreamRequestHandler, ThreadingMixIn
 from threading import Thread
 import shlex, time, tempfile
@@ -76,9 +77,9 @@ def handle_command(command):
     if args[0] == "caret":
         return get_caret(args)
     if args[0] == "user-select":
-        select_item(args)
+        sublime.set_timeout(lambda: select_item(args), 5)
     if args[0] == "user-input":
-        input_item(args)
+        sublime.set_timeout(lambda: input_item(args), 5)
     return None
 
 def open_file(args):
@@ -104,10 +105,8 @@ def get_buffer_content(args):
     return content_reader.get(args[1])
 
 def get_caret(args):
-    view = sublime.active_window().active_view()
-    line, column = view.rowcol(view.sel()[0].begin())
-    filename = view.file_name()
-    return filename+"|"+str(line+1)+"|"+str(column+1)
+    reader = GetCaret()
+    return reader.get()
 
 def select_item(args):
     items = args[2].split(',')
@@ -225,9 +224,11 @@ class TCPThreadedServer(TCPServer, ThreadingMixIn):
     class RequstHandler(StreamRequestHandler):
         def handle(self):
             msg = self.rfile.readline().strip()
-            reply = self.server.process(msg)
+            reply = unicode(self.server.process(msg))
             if reply is not None:
-                self.wfile.write(str(reply) + '\n')
+                #reply_uni = reply.decode('utf-8')
+                #print(type(reply_uni))
+                self.wfile.write(reply + '\n')
 
     def __init__(self, host, port, name=None):
         self.allow_reuse_address = True
@@ -326,6 +327,22 @@ class BufferContent:
         if view.file_name() == file_name:
             self.content = view.substr(sublime.Region(0, view.size()))
         self.completed = True
+
+class GetCaret:
+    def get(self):
+        self.done = False
+        self.caret = ""
+        sublime.set_timeout(lambda: self.get_caret(), 5)
+        while self.done == False:
+            time.sleep(0.1)
+        return self.caret
+
+    def get_caret(self):
+        view = sublime.active_window().active_view()
+        line, column = view.rowcol(view.sel()[0].begin())
+        filename = view.file_name()
+        self.caret = filename+"|"+str(line+1)+"|"+str(column+1)
+        self.done = True
 
 def get_view(file_name):
     windows = sublime.windows()
