@@ -59,15 +59,17 @@ class OpenIdeInsertCommand(sublime_plugin.TextCommand):
         print(filename) 
         if sublime.active_window().active_view().file_name() != filename:
             sublime.set_timeout(lambda: open_point(point), 5)
-        view = go_to_file(point.File)
-        if view == None:
-            return
-        time_slept = 0
-        while view.is_loading():
-            if time_slept > 1:
-                break;
-            time.sleep(0.05)
-            time_slept += 0.05
+            view = go_to_file(point.File)
+            if view == None:
+                return
+            time_slept = 0
+            while view.is_loading():
+                if time_slept > 1:
+                    break;
+                time.sleep(0.05)
+                time_slept += 0.05
+        else:
+            view = sublime.active_window().active_view()
         view.insert(edit, view.text_point(point.Line, point.Column), text)
 
 class OpenIdeRemoveCommand(sublime_plugin.TextCommand):
@@ -76,16 +78,18 @@ class OpenIdeRemoveCommand(sublime_plugin.TextCommand):
         end = get_point(filename, lineEnd, columnEnd)
         if sublime.active_window().active_view().file_name() != filename:
             sublime.set_timeout(lambda: open_point(start), 5)
-        time.sleep(0.15)
-        view = go_to_file(start.File)
-        if view == None:
-            return
-        time_slept = 0
-        while view.is_loading():
-            if time_slept > 1:
-                break;
-            time.sleep(0.05)
-            time_slept += 0.05
+            time.sleep(0.15)
+            view = go_to_file(start.File)
+            if view == None:
+                return
+            time_slept = 0
+            while view.is_loading():
+                if time_slept > 1:
+                    break;
+                time.sleep(0.05)
+                time_slept += 0.05
+        else:
+            view = sublime.active_window().active_view()
         start_point=view.text_point(start.Line, start.Column)
         end_point=view.text_point(end.Line, end.Column)
         view.erase(edit, sublime.Region(start_point, end_point))
@@ -132,7 +136,10 @@ def insert(args):
         open_file(["", args[2],args[3],args[4]])
     def run_insert_command(filename, line, column, text):
         sublime.active_window().run_command('open_ide_insert', {"filename": filename, "line": line, "column": column, "text": text})
-    sublime.set_timeout(lambda: run_insert_command(args[2],args[3],args[4],text), 300)
+    if sublime.active_window().active_view().file_name() != args[2]:
+        sublime.set_timeout(lambda: run_insert_command(args[2],args[3],args[4],text), 300)
+    else:
+        sublime.set_timeout(lambda: run_insert_command(args[2],args[3],args[4],text), 0)
 
 def remove(args):
     sublime.active_window().run_command('open_ide_remove', {"filename": args[1], "lineStart": args[2], "columnStart": args[3], "lineEnd": args[4], "columnEnd": args[5]})
