@@ -46,10 +46,13 @@ class OpenIdeDispatchCommand(sublime_plugin.ApplicationCommand):
 class OpenIdeLanguageCommandCommand(sublime_plugin.WindowCommand):
     def run(self, message):
         view = self.window.active_view()
-        if view == None:
-            return
-        filename, extension = os.path.splitext(view.file_name())
-        send_editor_engine_message(extension + ' command ' + message)
+        engine_message = 'none command '+message
+        if not view == None:
+            if not view.file_name() == None:
+                filename, extension = os.path.splitext(view.file_name())
+                if len(extension) > 0:
+                    engine_message = extension+' command '+message
+        send_editor_engine_message(engine_message)
 
 ###########################################################################
 ####################################### Commands ##########################
