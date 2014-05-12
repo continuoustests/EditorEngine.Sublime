@@ -41,7 +41,7 @@ class BufferChangeEvent(sublime_plugin.EventListener):
 
 class OpenIdeDispatchCommand(sublime_plugin.ApplicationCommand):
     def run(self, message):
-        send_editor_engine_message("'"+message+"'")
+        send_editor_engine_message(message)
 
 class OpenIdeLanguageCommandCommand(sublime_plugin.WindowCommand):
     def run(self, message):
