@@ -161,11 +161,21 @@ def get_caret(args):
     return filename+"|"+str(line+1)+"|"+str(column+1)
 
 def select_item(args):
-    items = args[2].split(',')
+    items = []
+    keys = []
+    for item in args[2].split(','):
+        chunks = item.split("||")
+        if len(chunks) > 1:
+            keys.append(chunks[0])
+            items.append(chunks[1])
+        else:
+            keys.append(item)
+            items.append(item)
+
     def on_done(e):
         response = "user-cancelled"
         if e != -1:
-            response = items[e]
+            response = keys[e]
         msg = "user-selected \"" + args[1] + "\" \""  + response + "\""
         sublime.set_timeout(lambda: send_editor_engine_message_from_view(window.active_view(), msg), 5)
     window = sublime.active_window()
