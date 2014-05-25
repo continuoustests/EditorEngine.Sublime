@@ -124,6 +124,8 @@ def handle_command(cmd):
         return get_caret(args)
     if args[0] == "user-select":
         select_item(args)
+    if args[0] == "user-select-at-caret":
+        select_item_at_caret(args)
     if args[0] == "user-input":
         input_item(args)
     return None
@@ -156,6 +158,8 @@ def get_buffer_content(args):
 
 def get_caret(args):
     view = sublime.active_window().active_view()
+    if view == None:
+        return "untitled|1|1"
     line, column = view.rowcol(view.sel()[0].begin())
     filename = view.file_name()
     return filename+"|"+str(line+1)+"|"+str(column+1)
@@ -180,6 +184,27 @@ def select_item(args):
         sublime.set_timeout(lambda: send_editor_engine_message_from_view(window.active_view(), msg), 5)
     window = sublime.active_window()
     window.show_quick_panel(items, on_done)
+
+def select_item_at_caret(args):
+    items = []
+    keys = []
+    for item in args[2].split(','):
+        chunks = item.split("||")
+        if len(chunks) > 1:
+            keys.append(chunks[0])
+            items.append(chunks[1])
+        else:
+            keys.append(item)
+            items.append(item)
+
+    def on_done(e):
+        response = "user-cancelled"
+        if e != -1:
+            response = keys[e]
+        msg = "user-selected-at-caret \"" + args[1] + "\" \""  + response + "\""
+        sublime.set_timeout(lambda: send_editor_engine_message_from_view(sublime.active_window().active_view(), msg), 5)
+    view = sublime.active_window().active_view()
+    view.show_popup_menu(items, on_done)
 
 def input_item(args):
     def on_done(e):

@@ -81,6 +81,9 @@ def handle_command(command):
         return get_caret(args)
     if args[0] == "user-select":
         sublime.set_timeout(lambda: select_item(args), 5)
+    if args[0] == "user-select-at-caret":
+        sublime.set_timeout(lambda: select_item(args), 5)
+        #sublime.set_timeout(lambda: select_item_at_caret(args), 5)
     if args[0] == "user-input":
         sublime.set_timeout(lambda: input_item(args), 5)
     return None
@@ -131,6 +134,27 @@ def select_item(args):
         sublime.set_timeout(lambda: send_editor_engine_message_from_view(window.active_view(), msg), 5)
     window = sublime.active_window()
     window.show_quick_panel(items, on_done)
+
+def select_item_at_caret(args):
+    items = []
+    keys = []
+    for item in args[2].split(','):
+        chunks = item.split("||")
+        if len(chunks) > 1:
+            keys.append(chunks[0])
+            items.append(chunks[1])
+        else:
+            keys.append(item)
+            items.append(item)
+    
+    def on_done(e):
+        response = "user-cancelled"
+        if e != -1:
+            response = keys[e]
+        msg = "user-selected-at-caret \"" + args[1] + "\" \""  + response + "\""
+        sublime.set_timeout(lambda: send_editor_engine_message_from_view(sublime.active_window().active_view(), msg), 5)
+    view = sublime.active_window().active_view()
+    view.show_popup_menu(items, on_done)
 
 def input_item(args):
     def on_done(e):
