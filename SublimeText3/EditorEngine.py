@@ -128,11 +128,16 @@ def handle_command(cmd):
         select_item_at_caret(args)
     if args[0] == "user-input":
         input_item(args)
+    if args[0] == "get-windows":
+        return get_windows(args)
     return None
 
 def open_file(args):
     point = get_point(args[1], args[2], args[3])
-    sublime.set_timeout(lambda: open_point(point), 5)
+    window = sublime.active_window().active_group()
+    if len(args) == 5:
+        window = int(args[4])-1
+    sublime.set_timeout(lambda: open_point(point, window), 5)
 
 def insert(args):
     text = args[1].replace("||newline||", os.linesep)
@@ -217,6 +222,15 @@ def input_item(args):
     
     window = sublime.active_window()
     window.show_input_panel("Input", args[2], on_done, None, on_cancel)
+
+def get_windows(args):
+    window_str = ""
+    windows = sublime.windows()
+    active = sublime.active_window().active_group()+1
+    for window in windows:
+        for group in range(1, window.num_groups() + 1):
+            window_str = window_str + str(group) + "|"
+    return str(active)+"|"+window_str.strip("|")
 
 ###########################################################################
 ####################################### Editor Engine Client ##############
@@ -351,7 +365,9 @@ class OIServer(TCPThreadedServer):
 ###########################################################################
 ####################################### Core Stuff ########################
 
-def open_point(point):
+def open_point(point, groupid):
+    if sublime.active_window().active_group() != groupid:
+        sublime.active_window().focus_group(groupid)
     view = go_to_file_position(point.File, point.Line, point.Column)
     if view == None:
         return
