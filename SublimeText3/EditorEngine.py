@@ -4,6 +4,8 @@ from threading import Thread
 import shlex, time, tempfile
 import os.path
 import pprint
+import json
+import subprocess
 
 class EditorEnginePluginHost(sublime_plugin.ApplicationCommand):
     def __init__ (self):
@@ -95,6 +97,36 @@ class OpenIdeRemoveCommand(sublime_plugin.TextCommand):
         start_point=view.text_point(start.Line, start.Column)
         end_point=view.text_point(end.Line, end.Column)
         view.erase(edit, sublime.Region(start_point, end_point))
+
+class ProjectLoadHandler(sublime_plugin.EventListener):
+    last_loaded = None
+
+    def on_activated_async(self, view):
+        if view.file_name() == None:
+            return
+        token = get_editor_engine_token(view.file_name())
+        if token == None:
+            return
+        lastpath, _ = token
+        if not view.file_name().startswith(lastpath):
+            return
+        if self.last_loaded == lastpath:
+            return
+        project = sublime.active_window().project_file_name()
+        if not project == None:
+            data = sublime.active_window().project_data()
+            if len(data['folders']) > 0:
+                path, _ = token
+                for folder in data['folders']:
+                    if folder['path'] == path:
+                        pass
+
+        if os.path.exists(path):
+            lines = runProcess(['oi', 'conf', 'read', 'editor.sublime.project'], path)
+            if len(lines) == 1:
+                project = os.path.join(path, lines[0])
+                self.last_loaded = path
+                runProcess(['oi', 'editor', 'command', 'load-project', project], path)
 
 ###########################################################################
 ####################################### Commands ##########################
@@ -267,6 +299,9 @@ def get_editor_engine_client(view):
         return None
     return token
 
+def is_same_as_engine(running, suggested):
+    return running == suggested or suggested.startswith(running+os.sep)
+
 def get_editor_engine_token(file_name):
     tempdir = tempfile.gettempdir()
     if sys.platform == "darwin":
@@ -282,7 +317,7 @@ def get_editor_engine_token(file_name):
                 if client != None:
                     all_engines.append(client)
                     if file_name != None:
-                        if file_name.startswith(client[0]):
+                        if is_same_as_engine(client[0], file_name):
                             engines.append(client)
         if len(engines) == 0 and len(all_engines) > 0:
             return all_engines[0]
@@ -364,6 +399,20 @@ class OIServer(TCPThreadedServer):
 
 ###########################################################################
 ####################################### Core Stuff ########################
+
+def runProcess(exe,workingDir=""):    
+    if workingDir == "":
+        workingDir = os.getcwd()
+    p = subprocess.Popen(exe, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=workingDir)
+    lines = []
+    while(True):
+        retcode = p.poll() # returns None while subprocess is running
+        line = p.stdout.readline().decode(encoding='windows-1252').strip('\n').strip('\r')
+        if line != "":
+            lines.append(line)
+        if(retcode is not None):
+            break
+    return lines
 
 def open_point(point, groupid):
     if sublime.active_window().active_group() != groupid:
