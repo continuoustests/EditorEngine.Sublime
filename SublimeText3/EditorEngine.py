@@ -121,12 +121,12 @@ class ProjectLoadHandler(sublime_plugin.EventListener):
                     if folder['path'] == path:
                         pass
 
-        if os.path.exists(path):
-            lines = runProcess(['oi', 'conf', 'read', 'editor.sublime.project'], path)
-            if len(lines) == 1:
-                project = os.path.join(path, lines[0])
-                self.last_loaded = path
-                runProcess(['oi', 'editor', 'command', 'load-project', project], path)
+        #if os.path.exists(path):
+        #    lines = runProcess(['oi', 'conf', 'read', 'editor.sublime.project'], path)
+        #    if len(lines) == 1:
+        #        project = os.path.join(path, lines[0])
+        #        self.last_loaded = path
+        #        runProcess(['oi', 'editor', 'command', 'load-project', project], path)
 
 ###########################################################################
 ####################################### Commands ##########################
