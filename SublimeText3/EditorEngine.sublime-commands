@@ -1,0 +1,4 @@
+[
+    { "caption": "OpenIDE: Environment Start", "command": "openide_environment_start" },
+    { "caption": "OpenIDE: Environment Shutdown", "command": "openide_environment_shutdown" }
+]

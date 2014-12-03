@@ -18,6 +18,18 @@ class EditorEnginePluginHost(sublime_plugin.ApplicationCommand):
     def run(self):
         print("Not in use")
 
+class OpenideEnvironmentShutdownCommand(sublime_plugin.ApplicationCommand):
+    def run(self):
+        config_point = get_nearest_config_point(os.getcwd())
+        if config_point != None:
+            subprocess.Popen(["oi", "shutdown"], stderr=subprocess.STDOUT, cwd=config_point)
+
+class OpenideEnvironmentStartCommand(sublime_plugin.ApplicationCommand):
+    def run(self):
+        config_point = get_nearest_config_point(os.getcwd())
+        if config_point != None:
+            subprocess.Popen(["oi", "environment", "start"], stderr=subprocess.STDOUT, cwd=config_point)
+
 class TypeSearchWindowCommand(sublime_plugin.ApplicationCommand):
     def run(self):
         send_editor_engine_message("gototype")
@@ -301,6 +313,17 @@ def get_editor_engine_client(view):
 
 def is_same_as_engine(running, suggested):
     return running == suggested or suggested.startswith(running+os.sep)
+
+def get_nearest_config_point(file_name):
+    path = file_name
+    while True:
+        if path == os.path.dirname(path) :
+            break
+        path = os.path.dirname(path) 
+        config_point = os.path.join(path, ".OpenIDE")
+        if os.path.exists(config_point):
+            return path;
+    return None
 
 def get_editor_engine_token(file_name):
     tempdir = tempfile.gettempdir()
