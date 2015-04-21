@@ -4,6 +4,7 @@ from SocketServer import TCPServer, StreamRequestHandler, ThreadingMixIn
 from threading import Thread
 import shlex, time, tempfile
 import os.path
+import getpass
 
 class EditorEnginePluginHost(sublime_plugin.ApplicationCommand):
     def __init__ (self):
@@ -211,9 +212,10 @@ def get_editor_engine_token(file_name):
     engines = []
     if os.path.exists(editor_token_path) == True:
         all_engines = []
+        path_ending = ".EditorEngine."+getpass.getuser()+".pid"
         for pid_file_name in os.listdir(editor_token_path):
             pid_file = os.path.join(editor_token_path, pid_file_name)
-            if pid_file.endswith(".pid"):
+            if pid_file.endswith(path_ending):
                 client = get_editor_engine_client_settings(pid_file)
                 if client != None:
                     all_engines.append(client)
